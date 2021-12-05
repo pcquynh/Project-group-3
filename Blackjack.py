@@ -4,7 +4,7 @@ def display_menu():
     print("Welcome to NL Casino")
     print("BlackJack game rule: ")
 
-
+#this is dawsons comment
 def player_info():
     player = []
     name = input("Enter player name: ")
