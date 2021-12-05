@@ -85,7 +85,7 @@ def count_score(hand):
     score = count_score_without_ace(hand)
     for card in hand:
         if card == "A":
-            if score >= 11:
+            if score > 11:
                 score += 1
             else:
                 score += 11
@@ -143,6 +143,7 @@ def play_game():
         if player_balance < 5:
             print("Your balance is not enough. Bye!")
             break
+        # todo: add suite to the deck
         deck = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14] * 4
         bet = place_bet()
         player_hand = give_card(deck)
@@ -162,7 +163,7 @@ def play_game():
                 print("Bye!")
         else:
             # PLAYER
-            # todo: may creat a separate function
+            # todo: modify player function related to score
             while player_score <= 21:
                 if player_score < 16:
                     hit_card(deck, player_hand, "Player")
