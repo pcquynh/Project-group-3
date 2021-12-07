@@ -3,7 +3,7 @@ def display_menu():
     # todo: need to add the game rules
     print("Welcome to NL Casino")
     print("BlackJack game rule: ")
-
+    print("All players get 2 cards")
 
 def get_player_list():
     player_list = []
