@@ -1,24 +1,48 @@
 import random
+
+# todo: add suite to the deck
+# the game works as long as no one gets out.
+#if player and dealer bust, they both lose money
+#add counter for total money won/lost by the house.
+#fix max and min bet (5, 1000)
+#add actual rules lol
+
+global casino_bank
+casino_bank = 0
+
 def display_menu():
     # todo: need to add the game rules
-    print("Welcome to NL Casino")
-    print("BlackJack game rule: ")
+    print("-----Welcome to NL Casino!-----")
+
+    print()
+    choice = input("What you like to see the rules?(y/n) ")
+    while choice == "y":
+        print("BlackJack game rule: ")
+        print("Here are the rules!!")
+        break
+
+    print()
+    print("Let get started!")
 
 
 def get_player_list():
     player_list = []
-    player_number = int(input("How many player? "))
+    player_number = int(input("How many players? "))
+    print()
+    i = 1
     while True:
         player = []
         bet = 0
         player_hand = []
-        name = input("Enter player name: ")
-        balance = float(input("Enter balance amount: "))
+        name = input(f"Enter player {i}'s name: ")
+        balance = float(input(f"Enter {name}'s balance: "))
+        print()
         player.append(name)
         player.append(balance)
         player.append(bet)
         player.append(player_hand)
         player_list.append(player)
+        i += 1
         if len(player_list) > player_number - 1:
             break
     return player_list
@@ -29,28 +53,27 @@ def give_card(deck):
     for i in range(2):
         random.shuffle(deck)
         card = deck.pop(0)
-        if card == 11: card = "J"
-        if card == 12: card = "Q"
-        if card == 13: card = "K"
-        if card == 14: card = "A"
         hand.append(card)
     return hand
 
 
-def show_card(hand):
+def show_card(player_hand):
     s = ""
-    for card in hand:
+    for card in player_hand:
         s = s + " " + str(card)
     print("[" + s + " ]")
 
 
-# todo: need to add exception handling for bet input
 def place_bet(player):
     player_balance = player[1]
     while True:
-        bet = float(input("Enter amount of bet (min 5, max 500) for " + player[0] + "\t"))
+        bet = int(input(f"{player[0]} - Enter amount of bet (min 5, max 1000):  "))
+        print()
         if bet > player_balance:
             print("The bet should be smaller than the balance")
+            continue
+        elif bet < 5 or bet > 1000:
+            print("Bet must be between 5 and 1000.\n")
             continue
         else:
             return bet
@@ -63,10 +86,6 @@ def stand_card(hand):
 def hit_card(deck, hand, role):
     random.shuffle(deck)
     card = deck.pop(0)
-    if card == 11: card = "J"
-    if card == 12: card = "Q"
-    if card == 13: card = "K"
-    if card == 14: card = "A"
     hand.append(card)
     print(role, " got", card)
     return hand
@@ -100,88 +119,131 @@ def is_back_jack(hand):
     return False
 
 
-def print_result(player,dealer_hand):
+def print_result(player, dealer_hand):
+    global casino_bank
     player_balance = player[1]
     bet = player[2]
     player_hand = player[3]
-
     if is_back_jack(dealer_hand):
         if is_back_jack(player_hand):
             print(player[0] + " and Dealer all have Blackjack")
-            print(player[0] + " balance is: "+ player_balance)
+            print(player[0] + "'s balance is: ", player_balance)
+            casino_bank = casino_bank
         else:
             player_balance -= bet
             print("Dealer has Blackjack." + player[0] + " lost bet.")
-            print(player[0] + " balance is: "+ player_balance)
+            print(player[0] + "'s balance is: ", player_balance)
             player[1] = player_balance
+            casino_bank += bet
     elif is_back_jack(player_hand):
         show_card(player_hand)
         player_balance += 1.5 * bet
         print(player[0] + " has Blackjack. " + player[0] + " win bet.")
-        print(player[0] + " balance is: " + player_balance)
+        print(player[0] + "'s balance is: ", player_balance)
+        casino_bank -= 1.5 * bet
         player[1] = player_balance
     elif count_score(dealer_hand) == count_score(player_hand) <= 21:
         print(player[0] + " and Dealer have the same score.")
-        print(player[0] + " balance is: " + player_balance)
+        print(player[0] + "'s balance is: ", player_balance)
     elif count_score(dealer_hand) < count_score(player_hand) <= 21:
         player_balance += bet
         print(player[0] + " win bet.")
-        print(player[0] + " balance is: " + player_balance)
+        print(player[0] + " balance is: ", player_balance)
         player[1] = player_balance
+        casino_bank -= bet
     elif count_score(player_hand) < count_score(dealer_hand) <= 21:
         player_balance -= bet
         print(player[0] + " lost bet.")
-        print(player[0] + " balance is: " + player_balance)
+        print(player[0] + "'s balance is: ", player_balance)
         player[1] = player_balance
+        casino_bank += bet
     elif count_score(dealer_hand) > 21 and count_score(player_hand) <= 21:
         player_balance += bet
         print("Dealer is bust. "+ player[0] + " win bet.")
-        print(player[0] + " balance is: " + player_balance)
+        print(player[0] + "'s balance is: ", player_balance)
         player[1] = player_balance
+        casino_bank -= bet
     elif count_score(player_hand) > 21 and count_score(dealer_hand) <= 21:
         player_balance -= bet
         print(player[0] + " is bust. " + player[0] + " lost bet.")
-        print(player[0] + " balance is: " + player_balance)
+        print(player[0] + "'s balance is: ", player_balance)
         player[1] = player_balance
+        casino_bank += bet
     else:
-        print("Player and Dealer are bust.")
-        print(player[0] + " balance is: " + player_balance)
+        print(player[0] + " and Dealer are bust.")
+        player_balance -= bet
+        print(player[0] + "'s balance is: ", player_balance)
+        casino_bank += bet
 
 
-def reset_player_list(player_list):
+
+def reset_player_list():
+    global player_list
     for player in player_list:
         player[2] = 0
         player[3] = []
 
 
-def play_game(player_list):
+def play_game():
+    global player_list
     choice = "y"
     while choice.lower() == "y":
-        reset_player_list(player_list)
+        reset_player_list()
         dealer_hand = []
-        deck = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14] * 4
+        deck = [2, 3, 4, 5, 6, 7, 8, 9, 10, "J", "Q", "K", "A"] * 4
+
+        #give_card(deck, player_list)
+        new_player_list = []
         for player in player_list:
             player_balance = player[1]
             if player_balance < 5:
-                print("Your balance is not enough. Bye!")
-                break
+                print(f"{player[0]}'s balance is not enough. Bye!")
+                print(f"{player[0]} was removed.")
+                continue
+            new_player_list.append(player)
+        player_list = new_player_list
+
+
+        if len(player_list) == 0:
+            print("There are no players at the table.")
+            print("Please add players.\n")
+            break
+
             # todo: add suite to the deck
+            # todo: print score along with the game
+        print("====Blackjack====")
+        for player in player_list:
             bet = place_bet(player)
             player[2] = bet
+        for player in player_list:
             player_hand = give_card(deck)
             player[3] = player_hand
             print(player[0] + " cards are:")
             show_card(player_hand)
             player_score = count_score(player_hand)
-            dealer_hand = give_card(deck)
-            dealer_score = count_score(dealer_hand)
+            print(f"{player[0]}'s score is: {player_score}")
+            print()
+        dealer_hand = give_card(deck)
+        dealer_score = count_score(dealer_hand)
+        print("Dealer cards are:")
+        print(f"[ {dealer_hand[0]} ? ]")
+        print("===============")
 
+        ################
+        for player in player_list:
+            player_hand = player[3]
+            player_score = count_score(player_hand)
             if is_back_jack(player_hand):
                 continue
-            else:
                 # PLAYER
+                #we need to keep looping through if 1 player has 21 or more.
+            else:
                 while player_score <= 21:
-                    choice = input("Do you want to stand or hit ? (S or H): ")
+                    player_score = count_score(player_hand)
+                    print(f"{player[0]}'s score is: {player_score}")
+                    print(player[0] + " cards are:")
+                    show_card(player_hand)
+                    choice = input(f"{player[0]} - Do you want to stand or hit ? (S or H): ")
                     if choice.upper() == "S":
                         stand_card(player_hand)
                         print(player[0] + " cards are:")
@@ -194,14 +256,23 @@ def play_game(player_list):
                         print(player[0] + " cards are:")
                         show_card(player_hand)
                         player[3] = player_hand
-                # DEALER
+                        print()
+                        #continue or break? or return
+                        #how to make it go to the next player if player before them busts
+                    # DEALER
+                print()
+                print("============NEXT PLAYER=============")
+
         print("Dealer cards are:")
-        print(dealer_hand[0])
-        print("?")
-        if dealer_score >= 16:
+        print(*dealer_hand)
+        dealer_score = count_score(dealer_hand)
+        print(f"Dealer's Score is {dealer_score}")
+
+        if dealer_score > 16:
             show_card(dealer_hand)
         else:
-            while dealer_score < 16:
+            while dealer_score <= 16:
+                print("Dealer must hit!")
                 hit_card(deck, dealer_hand, "Dealer")
                 print("Dealer cards are:")
                 show_card(dealer_hand)
@@ -210,15 +281,24 @@ def play_game(player_list):
             print_result(player, dealer_hand)
 
         print()
-        choice = input("Do you want to play again? (y/n) : ")
-
-    print("Bye!")
+        choice = input("Do you want to continue playing? (y/n): ")
 
 
 def main():
-    player_list = get_player_list()
-    play_game(player_list)
+    global casino_bank
+    global player_list
+    choice = "y"
+    while choice =="y":
+        display_menu()
+        player_list = get_player_list()
+        play_game()
+        choice = input("Do you want to play a new game?(y/n) ")
+    print("Bye!")
+    print(f"Casino Bank Account Balance: ${casino_bank}")
 
+    with open("Casino_Bank.txt", "w") as file:
+        file.write("Casino Bank Account Balance:"+"\n")
+        file.write(str(casino_bank))
 
 if __name__ == '__main__':
     main()
